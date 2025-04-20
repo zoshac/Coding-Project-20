@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [tours, setTours] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState(''); // For filtering tours
+
+  // main app component 
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const response = await fetch('https://api.example.com/tours'); // Replace with your API URL
+        const data = await response.json();
+        setTours(data);
+      } catch (error) {
+        setError('Error fetching tours');
+        console.error('Error fetching tours:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTours(); // invoke the fetch feature
+  }, []);
+
+  const filteredTours = tours.filter((tour) =>
+    tour.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div>
+      <ChildComponent
+        tours={filteredTours}
+        loading={loading}
+        error={error}
+        setFilter={setFilter}
+      />
+    </div>
+  );
+};
 
-export default App
+// Child component to display tours and filter input
+const ChildComponent = ({ tours, loading, error, setFilter }) => {
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Filter tours"
+        onChange={(e) => setFilter(e.target.value)}
+      />
+      <ul>
+        {tours.map((tour) => (
+          <li key={tour.id}>{tour.name}</li> //use unique id for each tour
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
